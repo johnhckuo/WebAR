@@ -69,8 +69,6 @@ function init()
     
     sphere.position.needsUpdate = true;
     sphere.geometry.dynamic = true;
-    var vector = new THREE.Vector3( (x / width ) * 2 - 1, -( y / height ) * 2 + 1,  0.5 );   
-    console.log(vector)
     sphere.position.set(0,0,0)
     scene.add(sphere);
 
@@ -83,11 +81,11 @@ function pointConverter(x, y, r ) {
 
     // event.preventDefault();
 
-    mouse.x = (x / window.innerWidth) * 2 - 1;
-    mouse.y = - (y / window.innerHeight) * 2 + 1;
-    console.log(mouse)
+    mouse.x = (x / width) * 2 - 1;
+    mouse.y = - (y / height) * 2 + 1;
 
-    var vector = new THREE.Vector3(mouse.x, mouse.y, 0.5);
+ // Make the sphere follow the mouse
+    var vector = new THREE.Vector3(mouse.x, mouse.y, 0);
     vector.unproject( camera );
     var dir = vector.sub( camera.position ).normalize();
     var distance = - camera.position.z / dir.z;
