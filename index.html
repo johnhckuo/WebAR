@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script src="js/jquery-3.0.0.min.js"></script>
+<script src="js/math.min.js"></script>
+<script src="js/three.js"></script>
+<script src='js/script.js'></script>
+<script type="text/javascript">
+
+var width = 640
+var height = 480
+// var width = window.innerWidth
+// var height = window.innerHeight
+var x = 10
+var y = 10
+var mouse = {x: 0, y: 0};
+var container, scene, camera, renderer, controls, stats;
+
+function dataURItoBlob(dataURI) {
+    // convert base64/URLEncoded data component to raw binary data held in a string
+    var byteString;
+    if (dataURI.split(',')[0].indexOf('base64') >= 0)
+        byteString = atob(dataURI.split(',')[1]);
+    else
+        byteString = unescape(dataURI.split(',')[1]);
+
+    // separate out the mime component
+    var mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
+
+    // write the bytes of the string to a typed array
+    var ia = new Uint8Array(byteString.length);
+    for (var i = 0; i < byteString.length; i++) {
+        ia[i] = byteString.charCodeAt(i);
+    }
+
+    return new Blob([ia], {type:mimeString});
+}
+	// use vanilla JS because why not
+	
+function eraseCanvas() {
+    theCanvas = document.getElementById('vidCanvas');
+    context = theCanvas.getContext('2d');
+    context.clearRect(0,0,width,height);
+}
+document.addEventListener('DOMContentLoaded', function(event) {
+	
+	
+		var mySocket = new WebSocket("ws://localhost:5000/ws");
+        //var fps = 250;
+		var fps = 1;
+
+		
+		
+        mySocket.onmessage = function (event) {
+	
+			var output = document.getElementById("output");
+			var json = JSON.parse(event.data);
+			console.log(json.x)
+			output.textContent = "X= "+json.x+", Y= "+json.y+", Radius= "+json.radius;
+			eraseCanvas()
+			
+
+
+			pointConverter(json.x, json.y, json.radius)
+
+			var canvasVid = document.getElementById("vidCanvas");
+			var ctxv=canvasVid.getContext("2d");
+			ctxv.beginPath();
+			ctxv.arc(json.x,json.y,json.radius,0,2*Math.PI);
+			ctxv.stroke();
+        };
+	
+		// Initialize everything and start rendering
+
+		navigator.getUserMedia  = navigator.getUserMedia ||
+							  navigator.webkitGetUserMedia ||
+							  navigator.mozGetUserMedia ||
+							  navigator.msGetUserMedia;
+
+		var video = document.querySelector('video');
+		var constrains = {
+			video: {
+				mandatory: {
+					minWidth: window.innerWidth,
+				}
+			}
+		};
+		
+	
+		if (navigator.getUserMedia) {
+			navigator.getUserMedia(constrains, function(stream) {
+				video.src = window.URL.createObjectURL(stream);
+
+				video.oncanplay = function() {
+					//init(video.clientWidth, video.clientHeight);
+					init();
+                 	animate();
+				}
+				//video.ontimeupdate = function(evt){
+				//	mySocket.send("img get");
+				//}
+
+			}, function() {});
+		}
+		
+		
+		
+		var canvas = document.getElementById("canvas");
+		var ctx = canvas.getContext('2d');
+		timer = setInterval(
+            function () {
+                ctx.drawImage(video, 0, 0, width, height);
+				var data = canvas.toDataURL('image/jpeg', 1.0);
+                newblob = dataURItoBlob(data);
+				var fd = new FormData(document.forms[0]);
+				fd.append("canvasImage", newblob);
+				mySocket.send(newblob);
+            }, 1000*(1/fps));
+			
+
+	});
+</script>
+<style>
+    /* just some super basic css to make effect prettier */
+    div {
+        margin: 10em;
+    }
+    form {
+        margin: 10em;
+    }
+
+    #threeCanvas{
+	    position:absolute;
+	    left:50%;
+	    top:50%;
+	    width:640px;
+	    height: 480x;
+	   	margin-top: -240px; /* -(1/2 height) */
+	    margin-left: -320px; /* -(1/2 width) */
+	    z-index: 10;
+	 }
+	#vidCanvas{
+	    position:absolute;
+	    left:50%;
+	    top:50%;
+	    width:640px;
+	    height: 480x;
+	   	margin-top: -240px; /* -(1/2 height) */
+	    margin-left: -320px; /* -(1/2 width) */
+	    z-index: 1;
+	}
+	#live{
+	    position:absolute;
+	    left:50%;
+	    top:50%;
+	    width:640px;
+	    height: 480x;
+	   	margin-top: -240px; /* -(1/2 height) */
+	    margin-left: -320px; /* -(1/2 width) */
+	    z-index: 1;
+	}
+	#canvas{
+		position: absolute;
+		bottom: 0px;
+		z-index: -1;
+		display: none;
+	}
+	body{
+		padding: 20px;
+		background:black;
+		color:white;
+		font-family: 微軟正黑體;
+	}
+	#output{
+	    position:absolute;
+	    left:50%;
+	    width:640px;
+	    height: 300x;
+
+	    margin-left: -320px; /* -(1/2 width) */
+	    z-index: 100;
+		bottom:0px;
+	   	background-color: rgba(0,0,0,0.5);
+	    box-shadow: 0px 5px 10px -1px rgba(0,0,0,0.5);
+	    border-radius: 5px;
+	    padding: 0px 5px;
+	    text-align: center;
+	}
+	.panel{
+	    position:absolute;
+	    left:50%;
+	    top:50%;
+	    width:640px;
+	    height: 480x;
+	   	margin-top: -240px; /* -(1/2 height) */
+	    margin-left: -320px; /* -(1/2 width) */
+	    z-index: 100;
+
+	    background-color: rgba(0,0,0,0.5);
+	    box-shadow: 0px 5px 10px -1px rgba(0,0,0,0.5);
+	    border-radius: 5px;
+	    padding: 0px 5px;
+	}
+	.panel > p{
+		line-height: 0px;
+		text-align: center;
+		color: rgba(255,255,255,0.5);
+	}
+
+</style>
+</head>
+<body>
+	
+	<video id="live" width="640" height="480" autoplay></video>
+	<canvas width="640" height="480" id='vidCanvas'></canvas>
+	<canvas width="640" id="canvas" height="480" ></canvas>
+	<div class="panel">
+			<p>AR framework by johnhckuo</p>
+	</div>
+    <div id="output"></div>
+	<a href="https://github.com/you"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://camo.githubusercontent.com/52760788cde945287fbb584134c4cbc2bc36f904/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f77686974655f6666666666662e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_white_ffffff.png"></a>
+</body>
+</html>
