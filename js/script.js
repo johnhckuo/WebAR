@@ -56,7 +56,7 @@ function init()
         
 
 
-    var sphereGeometry = new THREE.SphereGeometry( 50, 32, 16 ); 
+    var sphereGeometry = new THREE.SphereGeometry( originalSize, 32, 16 ); 
 
     var earthTexture = THREE.ImageUtils.loadTexture("img/earthmap1k.jpg");
     earthTexture.minFilter = THREE.NearestFilter;
@@ -69,6 +69,7 @@ function init()
     
     sphere.position.needsUpdate = true;
     sphere.geometry.dynamic = true;
+
     sphere.position.set(0,0,0)
     scene.add(sphere);
 
@@ -83,7 +84,10 @@ function pointConverter(x, y, r ) {
 
     mouse.x = (x / width) * 2 - 1;
     mouse.y = - (y / height) * 2 + 1;
-
+    var scale = r/originalSize
+    sphere.scale.x = scale;
+    sphere.scale.y = scale;
+    sphere.scale.z = scale;
  // Make the sphere follow the mouse
     var vector = new THREE.Vector3(mouse.x, mouse.y, 0);
     vector.unproject( camera );
