@@ -1,4 +1,4 @@
-# simple_web_AR
+# Webcam AR Project
 A simple AR project for web cam and web browser using OpenCV, Three.js :)
 <p align=center>
 <img width=50% height=50% src="https://github.com/johnhckuo/WebAR/blob/master/img/preprocessing.png?raw=true">
